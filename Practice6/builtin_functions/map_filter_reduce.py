@@ -1,12 +1,15 @@
 from functools import reduce
 
-numbers = [1, 2, 3, 4, 5, 6]
+numbers = [10, 15, 20, 25, 30]
 
-mapped = list(map(lambda x: x * 2, numbers))
-print("map:", mapped)
+# map() - add 5 to each number
+new_numbers = list(map(lambda x: x + 5, numbers))
+print("map:", new_numbers)
 
-filtered = list(filter(lambda x: x % 2 == 0, numbers))
-print("filter:", filtered)
+# filter() - keep numbers greater than 20
+big_numbers = list(filter(lambda x: x > 20, numbers))
+print("filter:", big_numbers)
 
-result = reduce(lambda x, y: x + y, numbers)
-print("reduce:", result)
+# reduce() - sum all numbers
+total = reduce(lambda x, y: x + y, numbers)
+print("reduce:", total)
