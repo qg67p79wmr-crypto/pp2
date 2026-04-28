@@ -1,6 +1,8 @@
 import json
 
-FILE = "leaderboard.json"
+import os
+
+FILE = os.path.join(os.path.dirname(__file__), "leaderboard.json")
 
 def load_leaderboard():
     try:
