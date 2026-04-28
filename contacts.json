@@ -1,0 +1,13 @@
+[
+  {
+    "first_name": "Дарина",
+    "last_name": "Бахитжанова",
+    "email": "darina@kbtu.kz",
+    "birthday": "2007-05-20",
+    "group_name": "KBTU Students",
+    "phones": [
+      {"phone": "+77015554433", "type": "mobile"},
+      {"phone": "+77271234567", "type": "work"}
+    ]
+  }
+]
