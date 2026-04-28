@@ -13,7 +13,7 @@ from datetime import date, datetime
 import psycopg2
 import psycopg2.extras
 
-
+# Импортируем подключение из твоего файла connect.py
 try:
     from connect import get_connection
 except ImportError:
@@ -158,34 +158,25 @@ def sort_and_list():
     _print_contacts(results)
 
 def paginated_browse():
+    """Постраничный просмотр (по 5 контактов)."""
     page_size = 5
     page = 0
-
     while True:
         offset = page * page_size
-
         with _conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                
-                
-                cur.execute(
-                    "SELECT id FROM get_contacts_paginated(%s, %s)",
-                    (page_size, offset)
-                )
+                cur.execute("SELECT id FROM contacts ORDER BY id LIMIT %s OFFSET %s", (page_size, offset))
                 ids = [r["id"] for r in cur.fetchall()]
-
-            results = _fetch_contacts_with_phones(conn, ids)
+                results = _fetch_contacts_with_phones(conn, ids)
 
         print(f"\n── Страница {page + 1} ──")
         _print_contacts(results)
+        
+        cmd = input("[N]ext (след)  [P]rev (пред)  [Q]uit (выход): ").strip().lower()
+        if cmd == "n": page += 1
+        elif cmd == "p": page = max(0, page - 1)
+        elif cmd == "q": break
 
-        cmd = input("[N]ext  [P]rev  [Q]uit: ").strip().lower()
-        if cmd == "n":
-            page += 1
-        elif cmd == "p":
-            page = max(0, page - 1)
-        elif cmd == "q":
-            break
 def export_to_json(filepath="contacts_export.json"):
     """Экспорт базы в JSON файл."""
     with _conn() as conn:
@@ -261,35 +252,6 @@ def import_from_json():
         for r in records:
             _upsert_contact_from_dict(conn, r, on_duplicate="ask")
     print("✅ Импорт завершен.")
-def import_from_csv():
-    path = input("Путь к CSV [contacts.csv]: ").strip() or "contacts.csv"
-
-    if not os.path.exists(path):
-        print("Файл не найден!")
-        return
-
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-
-        with _conn() as conn:
-            for row in reader:
-                data = {
-                    "first_name": row.get("first_name"),
-                    "last_name": row.get("last_name"),
-                    "email": row.get("email"),
-                    "birthday": row.get("birthday"),
-                    "group_name": row.get("group"),
-                    "phones": [
-                        {
-                            "phone": row.get("phone"),
-                            "type": row.get("type", "mobile")
-                        }
-                    ] if row.get("phone") else []
-                }
-
-                _upsert_contact_from_dict(conn, data, on_duplicate="ask")
-
-    print("✅ CSV импорт завершён.")
 
 def call_add_phone():
     name = input("Имя контакта: ").strip()
@@ -310,7 +272,6 @@ MENU = """
 6. Экспорт в JSON
 7. Добавить телефон (Procedure)
 i. Инициализировать таблицы (Init Schema)
-8. Импорт из CSV
 q. Выход
 """
 
@@ -322,8 +283,7 @@ HANDLERS = {
     "5": paginated_browse,
     "6": export_to_json,
     "7": call_add_phone,
-    "i": init_schema,
-    "8": import_from_csv
+    "i": init_schema
 }
 
 def main():
