@@ -1,9 +1,8 @@
 import json
-
 import os
 
 FILE = os.path.join(os.path.dirname(__file__), "leaderboard.json")
-
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 def load_leaderboard():
     try:
         with open(FILE, "r") as f:
@@ -26,3 +25,22 @@ def save_score(name, score, distance):
 
     with open(FILE, "w") as f:
         json.dump(leaderboard, f, indent=2, ensure_ascii=False)
+import json
+import os
+
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
+
+def load_settings():
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {
+            "sound": True,
+            "difficulty": 1,
+            "car_color": [0, 255, 0]
+        }
+
+def save_settings(settings):
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(settings, f, indent=2)
