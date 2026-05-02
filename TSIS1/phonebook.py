@@ -1,9 +1,3 @@
-"""
-phonebook.py  –  PhoneBook Extended (TSIS 1)
-Builds on the CRUD / CSV / search / pagination foundations from
-Practice 7 & 8.
-"""
-
 import csv
 import json
 import os
@@ -13,7 +7,6 @@ from datetime import date, datetime
 import psycopg2
 import psycopg2.extras
 
-# Импортируем подключение из твоего файла connect.py
 try:
     from connect import get_connection
 except ImportError:
@@ -26,7 +19,6 @@ def _fmt_date(d):
     return d.isoformat() if d else ""
 
 def _parse_date(s):
-    """Преобразование строки в объект даты."""
     s = (s or "").strip()
     if not s:
         return None
@@ -37,7 +29,6 @@ def _parse_date(s):
         return None
 
 def _print_contacts(rows):
-    """Красивый вывод списка контактов."""
     if not rows:
         print("  (контакты не найдены)")
         return
@@ -58,7 +49,6 @@ def _print_contacts(rows):
     print(sep)
 
 def _fetch_contacts_with_phones(conn, contact_ids):
-    """Загрузка контактов вместе с их номерами телефонов по ID."""
     if not contact_ids:
         return []
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -88,7 +78,6 @@ def _fetch_contacts_with_phones(conn, contact_ids):
     return [contacts[cid] for cid in contact_ids if cid in contacts]
 
 def init_schema():
-    """Создание таблиц и процедур из .sql файлов."""
     base = os.path.dirname(os.path.abspath(__file__))
     with _conn() as conn:
         with conn.cursor() as cur:
@@ -105,7 +94,6 @@ def init_schema():
     print("✅  База данных готова к работе.")
 
 def filter_by_group():
-    """Фильтрация контактов по группе."""
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("SELECT id, name FROM groups ORDER BY name")
@@ -134,7 +122,6 @@ def filter_by_group():
     _print_contacts(results)
 
 def search_by_email():
-    """Поиск по частичному совпадению email."""
     query = input("Введите email для поиска: ").strip()
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -144,7 +131,6 @@ def search_by_email():
     _print_contacts(results)
 
 def sort_and_list():
-    """Сортировка контактов."""
     print("\nСортировать по: 1) Имени  2) Дате рождения  3) Дате добавления")
     choice = input("Выбор [1]: ").strip() or "1"
     order_map = {"1": "first_name, last_name", "2": "birthday NULLS LAST", "3": "id"}
@@ -158,7 +144,6 @@ def sort_and_list():
     _print_contacts(results)
 
 def paginated_browse():
-    """Постраничный просмотр (по 5 контактов)."""
     page_size = 5
     page = 0
     while True:
@@ -178,7 +163,6 @@ def paginated_browse():
         elif cmd == "q": break
 
 def export_to_json(filepath="contacts_export.json"):
-    """Экспорт базы в JSON файл."""
     with _conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("SELECT id FROM contacts")
@@ -194,7 +178,6 @@ def export_to_json(filepath="contacts_export.json"):
     print(f"✅  Экспортировано {len(contacts)} контактов в '{filepath}'.")
 
 def _upsert_contact_from_dict(conn, data, on_duplicate="ask"):
-    """Вставка или обновление контакта."""
     first = (data.get("first_name") or "").strip()
     last = (data.get("last_name") or "").strip() or None
     if not first: return
@@ -212,7 +195,6 @@ def _upsert_contact_from_dict(conn, data, on_duplicate="ask"):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM contacts WHERE id = %s", (existing[0],))
 
-    # Группа
     group_id = None
     group_name = (data.get("group_name") or data.get("group") or "").strip()
     if group_name:
@@ -241,7 +223,6 @@ def _upsert_contact_from_dict(conn, data, on_duplicate="ask"):
     print(f"  ✅ Сохранено: {first} {last or ''}")
 
 def import_from_json():
-    """Загрузка из JSON."""
     path = input("Путь к JSON [contacts.json]: ").strip() or "contacts.json"
     if not os.path.exists(path):
         print("Файл не найден!")
